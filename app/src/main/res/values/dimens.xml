@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="metric_size">48sp</dimen>
+
+    <dimen name="run_button_width">300dp</dimen>
+    <dimen name="run_button_height">60dp</dimen>
+</resources>
