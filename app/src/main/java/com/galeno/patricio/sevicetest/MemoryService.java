@@ -41,6 +41,7 @@ import java.util.UUID;
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class MemoryService extends Service {
 
+    private boolean disconnected = false;
     private BluetoothManager bluetoothManager;
     private BluetoothAdapter bluetoothAdapter;
     private BluetoothDevice bluetoothDevice;
@@ -119,28 +120,6 @@ public class MemoryService extends Service {
         final ActivityManager.MemoryInfo memoryInfo = new ActivityManager.MemoryInfo();
         final ActivityManager activityManager =
                 (ActivityManager) getSystemService(ACTIVITY_SERVICE);
-
-
-        Timer timer = new Timer();
-
-        timerTask = new TimerTask() {
-            @Override
-            public void run() {
-                activityManager.getMemoryInfo(memoryInfo);
-                String availMem = memoryInfo.availMem / 1048576 + "MB";
-
-                Log.d(TAG, availMem);
-
-                Intent localIntent = new Intent(Constants.ACTION_RUN_SERVICE)
-                        .putExtra(Constants.EXTRA_MEMORY, availMem);
-
-                // Emitir el intent a la actividad
-                LocalBroadcastManager.
-                        getInstance(MemoryService.this).sendBroadcast(localIntent);
-            }
-        };
-
-        timer.scheduleAtFixedRate(timerTask, 0, 1000);
         */
         try {
             bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);          //Get a reference to BluetoothManager from the operating system
@@ -159,6 +138,33 @@ public class MemoryService extends Service {
         }
         connect("00:1E:C0:3E:03:77");
 
+        //Timer para la funcionalidad de reconectar de forma manual pero mas rapida, alternativa propia:
+        //connectGatt(this, TRUE, bleGattCallback);
+        Timer timer = new Timer();
+        timerTask = new TimerTask() {
+            @Override
+            public void run() {
+                if (disconnected) {
+                    Log.d(TAG, "RECONECTAR");
+                    connect("00:1E:C0:3E:03:77");
+                }
+                //activityManager.getMemoryInfo(memoryInfo);
+                //String availMem = memoryInfo.availMem / 1048576 + "MB";
+
+                //Log.d(TAG, availMem);
+
+                //Intent localIntent = new Intent(Constants.ACTION_RUN_SERVICE)
+                //        .putExtra(Constants.EXTRA_MEMORY, availMem);
+
+                // Emitir el intent a la actividad
+                //LocalBroadcastManager.
+                //        getInstance(MemoryService.this).sendBroadcast(localIntent);
+            }
+        };
+        timer.scheduleAtFixedRate(timerTask, 0, 1000);
+
+
+
         //bluetoothGatt.setCharacteristicNotification(mldpDataCharacteristic, true);
         /*
         BluetoothGattDescriptor descriptor = mldpDataCharacteristic.getDescriptor(
@@ -168,7 +174,7 @@ public class MemoryService extends Service {
         */
         //bluetoothGatt.setCharacteristicNotification(transparentTxDataCharacteristic, true);
         //bluetoothGatt.setCharacteristicNotification(transparentRxDataCharacteristic, true);
-
+        /*
         Timer timer = new Timer();
 
         timerTask = new TimerTask() {
@@ -227,7 +233,7 @@ public class MemoryService extends Service {
             }
         };
         //timer.scheduleAtFixedRate(timerTask, 0, 1000);
-
+        */
         return START_STICKY;
     }
 
@@ -302,6 +308,7 @@ public class MemoryService extends Service {
                     if (newState == BluetoothProfile.STATE_CONNECTED) {                                 //Connected
                         final Intent intent = new Intent(ACTION_BLE_CONNECTED);
                         sendBroadcast(intent);
+                        disconnected = false;
                         Log.i(TAG, "Connected to BLE device");
                         descriptorWriteQueue.clear();                                                   //Clear write queues in case there was something left in the queue from the previous connection
                         characteristicWriteQueue.clear();
@@ -310,6 +317,7 @@ public class MemoryService extends Service {
                     else if (newState == BluetoothProfile.STATE_DISCONNECTED) {                         //Disconnected
                         final Intent intent = new Intent(ACTION_BLE_DISCONNECTED);
                         sendBroadcast(intent);
+                        disconnected = true;
                         Log.i(TAG, "Disconnected from BLE device");
                     }
                 }
@@ -321,6 +329,7 @@ public class MemoryService extends Service {
                     else if (newState == BluetoothProfile.STATE_DISCONNECTED) {                         //Not trying another connection attempt and are not connected
                         final Intent intent = new Intent(ACTION_BLE_DISCONNECTED);
                         sendBroadcast(intent);
+                        disconnected = true;
                         Log.i(TAG, "Unexpectedly disconnected from BLE device");
                     }
                 }

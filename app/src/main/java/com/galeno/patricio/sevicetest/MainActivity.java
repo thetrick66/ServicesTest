@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Obtener las etiquetas
         memoryUsageText = (TextView) findViewById(R.id.memory_ava_text);
-        progressText = (TextView) findViewById(R.id.progress_text);
+        //progressText = (TextView) findViewById(R.id.progress_text);
 
         // Obtener botón de monitoreo de memoria
         ToggleButton button = (ToggleButton) findViewById(R.id.toggleButton);
@@ -119,18 +119,18 @@ public class MainActivity extends AppCompatActivity {
      * Método onClick() personalizado para {@code turn_intent_service}
      * @param v View presionado
      */
+    /*
     public void onClickTurnIntentService(View v) {
         Intent intent = new Intent(this, ProgressIntentService.class);
         intent.setAction(Constants.ACTION_RUN_ISERVICE);
         startService(intent);
     }
-
+    */
     @Override
     protected void onDestroy() {
         if(enlazado){
             unbindService(mConnection);
         }
-
         super.onDestroy();
     }
 
