@@ -11,8 +11,8 @@ public class Constants {
     /**
      * Constantes para {@link MemoryService}
      */
-    public static final String ACTION_RUN_SERVICE = "com.herprogramacion.memoryout.action.RUN_SERVICE";
-    public static final String ACTION_MEMORY_EXIT = "com.herprogramacion.memoryout.action.MEMORY_EXIT";
+    public static final String ACTION_RUN_SERVICE = "com.galeno.patricio.action.RUN_SERVICE";
+    public static final String ACTION_MEMORY_EXIT = "com.galeno.patricio.action.MEMORY_EXIT";
 
     public static final String EXTRA_MEMORY = "com.herprogramacion.memoryout.extra.MEMORY";
 
