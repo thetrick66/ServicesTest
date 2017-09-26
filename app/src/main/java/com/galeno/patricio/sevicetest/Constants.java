@@ -9,7 +9,7 @@ package com.galeno.patricio.sevicetest;
  */
 public class Constants {
     /**
-     * Constantes para {@link MemoryService}
+     * Constantes para {@link BTService}
      */
     public static final String ACTION_RUN_SERVICE = "com.galeno.patricio.action.RUN_SERVICE";
     public static final String ACTION_MEMORY_EXIT = "com.galeno.patricio.action.MEMORY_EXIT";

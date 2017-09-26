@@ -1,9 +1,11 @@
 package com.galeno.patricio.sevicetest;
 
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.ComponentName;
 import android.content.ServiceConnection;
 import android.os.IBinder;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.content.BroadcastReceiver;
@@ -11,9 +13,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
-import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -22,10 +24,11 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Text views para los datos
      */
+
     private boolean father = false;
     private boolean creado = false;
     private boolean enlazado = false;
-    MemoryService mService;
+    BTService mService;
     boolean mBound = false;
     Intent intentMemoryService;
     private TextView memoryUsageText;
@@ -36,6 +39,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
+        // Set the list's click listener
+        //mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
+        /*MENU LATERAL*/
         // Obtener las etiquetas
         memoryUsageText = (TextView) findViewById(R.id.memory_ava_text);
         //progressText = (TextView) findViewById(R.id.progress_text);
@@ -44,8 +51,8 @@ public class MainActivity extends AppCompatActivity {
         ToggleButton button = (ToggleButton) findViewById(R.id.toggleButton);
 
         intentMemoryService = new Intent(
-                getApplicationContext(), MemoryService.class);
-        if(!isMyServiceRunning(MemoryService.class)){
+                getApplicationContext(), BTService.class);
+        if(!isMyServiceRunning(BTService.class)){
             creado = true;
             father = true;
             startService(intentMemoryService); //Iniciar servicio
@@ -172,7 +179,7 @@ public class MainActivity extends AppCompatActivity {
         public void onServiceConnected(ComponentName className,
                                        IBinder service) {
             // We've bound to LocalService, cast the IBinder and get LocalService instance
-            MemoryService.LocalBinder binder = (MemoryService.LocalBinder) service;
+            BTService.LocalBinder binder = (BTService.LocalBinder) service;
             mService = binder.getService();
             mBound = true;
         }

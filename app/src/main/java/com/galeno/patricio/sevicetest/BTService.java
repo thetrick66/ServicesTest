@@ -4,7 +4,6 @@ package com.galeno.patricio.sevicetest;
  * Created by Patricio on 31-08-2017.
  */
 
-import android.app.ActivityManager;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -39,7 +38,7 @@ import java.util.UUID;
  * Un {@link Service} que notifica la cantidad de memoria disponible en el sistema
  */
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-public class MemoryService extends Service {
+public class BTService extends Service {
 
     private boolean disconnected = false;
     private BluetoothManager bluetoothManager;
@@ -79,17 +78,17 @@ public class MemoryService extends Service {
     private BluetoothGattCharacteristic mldpDataCharacteristic, transparentTxDataCharacteristic, transparentRxDataCharacteristic;
     private int connectionAttemptCountdown = 0;
 
-    private static final String TAG = MemoryService.class.getSimpleName();
+    private static final String TAG = BTService.class.getSimpleName();
     TimerTask timerTask;
     private boolean change = false;
     private String output="";
-    public MemoryService() {
+    public BTService() {
     }
 
     /* Método de acceso */
     public class LocalBinder extends Binder {
-        MemoryService getService() {
-            return MemoryService.this;
+        BTService getService() {
+            return BTService.this;
         }
     }
 
@@ -108,19 +107,6 @@ public class MemoryService extends Service {
 
     @Override
     public void onCreate() {
-        Log.d(TAG, "Servicio creado...");
-
-    }
-
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(TAG, "Servicio iniciado...");
-
-        /*
-        final ActivityManager.MemoryInfo memoryInfo = new ActivityManager.MemoryInfo();
-        final ActivityManager activityManager =
-                (ActivityManager) getSystemService(ACTIVITY_SERVICE);
-        */
         try {
             bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);          //Get a reference to BluetoothManager from the operating system
             if (bluetoothManager == null) {                                                             //Check that we did get a BluetoothManager
@@ -136,6 +122,23 @@ public class MemoryService extends Service {
         catch (Exception e) {
             Log.e(TAG, "Oops, exception caught in " + e.getStackTrace()[0].getMethodName() + ": " + e.getMessage());
         }
+        Log.d(TAG, "Servicio creado...");
+        if(!bluetoothAdapter.isEnabled()){
+            bluetoothAdapter.enable();
+        }
+
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.d(TAG, "Servicio iniciado...");
+
+        /*
+        final ActivityManager.MemoryInfo memoryInfo = new ActivityManager.MemoryInfo();
+        final ActivityManager activityManager =
+                (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+        */
+
         connect("00:1E:C0:3E:03:77");
 
         //Timer para la funcionalidad de reconectar de forma manual pero mas rapida, alternativa propia:
@@ -144,9 +147,18 @@ public class MemoryService extends Service {
         timerTask = new TimerTask() {
             @Override
             public void run() {
-                if (disconnected) {
-                    Log.d(TAG, "RECONECTAR");
-                    connect("00:1E:C0:3E:03:77");
+                if(!bluetoothAdapter.isEnabled()){
+                    bluetoothAdapter.enable();
+                    if (disconnected) {
+                        Log.d(TAG, "RECONECTAR");
+                        connect("00:1E:C0:3E:03:77");
+                    }
+                }
+                else{
+                    if (disconnected) {
+                        Log.d(TAG, "RECONECTAR");
+                        connect("00:1E:C0:3E:03:77");
+                    }
                 }
                 //activityManager.getMemoryInfo(memoryInfo);
                 //String availMem = memoryInfo.availMem / 1048576 + "MB";
@@ -158,82 +170,11 @@ public class MemoryService extends Service {
 
                 // Emitir el intent a la actividad
                 //LocalBroadcastManager.
-                //        getInstance(MemoryService.this).sendBroadcast(localIntent);
+                //        getInstance(BTService.this).sendBroadcast(localIntent);
             }
         };
         timer.scheduleAtFixedRate(timerTask, 0, 1000);
 
-
-
-        //bluetoothGatt.setCharacteristicNotification(mldpDataCharacteristic, true);
-        /*
-        BluetoothGattDescriptor descriptor = mldpDataCharacteristic.getDescriptor(
-                UUID.fromString(SampleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG));
-        descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-        bluetoothGatt.writeDescriptor(descriptor);
-        */
-        //bluetoothGatt.setCharacteristicNotification(transparentTxDataCharacteristic, true);
-        //bluetoothGatt.setCharacteristicNotification(transparentRxDataCharacteristic, true);
-        /*
-        Timer timer = new Timer();
-
-        timerTask = new TimerTask() {
-            @Override
-            public void run() {
-                AsyncTask<Void, Void, String> task = new AsyncTask<Void, Void, String>() {
-
-                    @Override
-                    protected void onPreExecute() {
-                    }
-
-                    @Override
-                    protected String doInBackground(Void... params) {
-
-                        //String resultado = new Server().connectToServer("http://telemarket.telprojects.xyz/?s", 15000);
-                        String resultado="";
-                        if (change){
-                            resultado = "Uno";
-                            change = false;
-                        }
-                        else{
-                            change = true;
-                            resultado = "Dos";
-                        }
-                        return resultado;
-                    }
-
-                    @Override
-                    protected void onPostExecute(String resultado) {
-
-                        if (resultado != null) {
-                            //System.out.println(resultado);
-                            Intent localIntent = new Intent(Constants.ACTION_RUN_SERVICE)
-                                    .putExtra(Constants.EXTRA_MEMORY, resultado);
-
-                            // Emitir el intent a la actividad
-                            LocalBroadcastManager.
-                                    getInstance(MemoryService.this).sendBroadcast(localIntent);
-                            //Why god... why
-
-                            //reposes = getFeedS(resultado);
-                            //System.out.println(reposes);
-                        }
-                        else{
-                            Intent localIntent = new Intent(Constants.ACTION_RUN_SERVICE)
-                                    .putExtra(Constants.EXTRA_MEMORY, "Else");
-
-                            // Emitir el intent a la actividad
-                            LocalBroadcastManager.
-                                    getInstance(MemoryService.this).sendBroadcast(localIntent);
-                        }
-                    }
-                };
-
-                task.execute();
-            }
-        };
-        //timer.scheduleAtFixedRate(timerTask, 0, 1000);
-        */
         return START_STICKY;
     }
 
@@ -241,10 +182,12 @@ public class MemoryService extends Service {
     public void onDestroy() {
         timerTask.cancel();
         Intent localIntent = new Intent(Constants.ACTION_MEMORY_EXIT);
-
+        if(bluetoothAdapter.isEnabled()){
+            bluetoothAdapter.disable();
+        }
         // Emitir el intent a la actividad
         LocalBroadcastManager.
-                getInstance(MemoryService.this).sendBroadcast(localIntent);
+                getInstance(BTService.this).sendBroadcast(localIntent);
         if (bluetoothGatt != null) {                                                                //See if there is an existing Bluetooth connection
             bluetoothGatt.close();                                                                  //Close the connection as the service is ending
             bluetoothGatt = null;                                                                   //Remove the reference to the connection we had
@@ -457,7 +400,7 @@ public class MemoryService extends Service {
 
                     // Emitir el intent a la actividad
                     LocalBroadcastManager.
-                            getInstance(MemoryService.this).sendBroadcast(localIntent);
+                            getInstance(BTService.this).sendBroadcast(localIntent);
                     AsyncTask<Void, Void, String> task = new AsyncTask<Void, Void, String>() {
 
                         @Override
@@ -492,7 +435,7 @@ public class MemoryService extends Service {
 
                                 // Emitir el intent a la actividad
                                 LocalBroadcastManager.
-                                        getInstance(MemoryService.this).sendBroadcast(localIntent);
+                                        getInstance(BTService.this).sendBroadcast(localIntent);
                                 //Why god... why
 
                                 //reposes = getFeedS(resultado);
@@ -504,7 +447,7 @@ public class MemoryService extends Service {
 
                                 // Emitir el intent a la actividad
                                 LocalBroadcastManager.
-                                        getInstance(MemoryService.this).sendBroadcast(localIntent);
+                                        getInstance(BTService.this).sendBroadcast(localIntent);
                             }
                         }
                     };
